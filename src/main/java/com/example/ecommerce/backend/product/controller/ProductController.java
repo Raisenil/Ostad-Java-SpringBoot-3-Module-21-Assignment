@@ -172,7 +172,7 @@ public class ProductController {
 
     /**
      * Searches active products using optional filters.
-     *tes
+     *
      * @param request product search filters and pagination information
      * @return response containing matching active products
      */

@@ -3,6 +3,7 @@ package com.example.ecommerce.backend.product.service.impl;
 import com.example.ecommerce.backend.common.exception.ResourceConflictException;
 import com.example.ecommerce.backend.product.dto.request.ProductCreateRequest;
 import com.example.ecommerce.backend.product.dto.request.ProductUpdateRequest;
+import com.example.ecommerce.backend.product.dto.request.ProductSearchRequest;
 import com.example.ecommerce.backend.product.dto.response.ProductResponse;
 import com.example.ecommerce.backend.product.entity.Category;
 import com.example.ecommerce.backend.product.entity.Product;
@@ -14,6 +15,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 /**
@@ -68,10 +71,36 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void delete(Long id) {
-        if (!productRepository.existsById(id)) {
+        Product product = getProductById(id);
+        if (!Boolean.TRUE.equals(product.getIsActive())) {
             throw new EntityNotFoundException("Product not found: " + id);
         }
-        productRepository.deleteById(id);
+        product.setIsActive(false);
+        productRepository.save(product);
+    }
+
+    @Override
+    public Page<ProductResponse> search(ProductSearchRequest request) {
+        Specification<Product> spec = Specification.where((root, query, cb) -> cb.isTrue(root.get("isActive")));
+        if (request.name() != null && !request.name().isBlank()) {
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), "%" + request.name().toLowerCase() + "%"));
+        }
+        if (request.sku() != null && !request.sku().isBlank()) {
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("sku")), "%" + request.sku().toLowerCase() + "%"));
+        }
+        if (request.categoryId() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("category").get("id"), request.categoryId()));
+        }
+        if (request.minPrice() != null) {
+            spec = spec.and((root, query, cb) -> cb.ge(root.get("price"), request.minPrice()));
+        }
+        if (request.maxPrice() != null) {
+            spec = spec.and((root, query, cb) -> cb.le(root.get("price"), request.maxPrice()));
+        }
+        int page = request.page() != null ? request.page() : 0;
+        int size = request.size() != null ? request.size() : 10;
+        return productRepository.findAll(spec, PageRequest.of(page, size))
+                .map(productMapper::toResponse);
     }
 
     private Product getProductById(Long id) {

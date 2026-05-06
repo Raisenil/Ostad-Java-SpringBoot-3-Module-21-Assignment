@@ -193,13 +193,8 @@ public class CategoryController {
     @PostMapping("/search")
     public ResponseEntity<ApiResponse<PaginatedResponse<Category>>> searchCategories(
             @Valid @RequestBody CategorySearchRequest request) {
-        // TODO: Implement category search in the service layer.
-        // Search must use the optional name and code filters from the request.
-        // Only categories where isActive = true should be included in the result.
-        // Use request.page() and request.size() to build the Pageable object.
-
-        // Remove this line with your service method call
-        throw new UnsupportedOperationException("Category search assignment is not implemented yet.");
+                var page = categoryService.search(request);
+                return ResponseEntity.ok(ApiResponse.success(PaginatedResponse.of(page)));
     }
 
     /**
@@ -321,11 +316,7 @@ public class CategoryController {
     public ResponseEntity<Void> deleteCategory(
             @Parameter(description = "Unique identifier of the category to delete.", example = "1", required = true)
             @PathVariable Long id) {
-        // TODO: Replace the current hard delete behavior with soft delete.
-        // Soft delete means the category row must remain in the database.
-        // Instead of calling deleteById, load the category, set isActive = false, and save it.
-
-        // Remove this line with your service method call
-        throw new UnsupportedOperationException("Category soft delete assignment is not implemented yet.");
+        categoryService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

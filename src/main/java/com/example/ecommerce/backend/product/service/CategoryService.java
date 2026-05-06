@@ -1,6 +1,7 @@
 package com.example.ecommerce.backend.product.service;
 
 import com.example.ecommerce.backend.product.dto.request.CategoryCreateRequest;
+import com.example.ecommerce.backend.product.dto.request.CategorySearchRequest;
 import com.example.ecommerce.backend.product.dto.request.CategoryUpdateRequest;
 import com.example.ecommerce.backend.product.entity.Category;
 import org.springframework.data.domain.Page;
@@ -69,5 +70,12 @@ public interface CategoryService {
      * @throws jakarta.persistence.EntityNotFoundException if category not found
      */
     void delete(Long id);
-}
 
+    /**
+     * Searches active categories using optional filters and pagination.
+     *
+     * @param request the search filters and pagination info
+     * @return a page of matching active categories
+     */
+    Page<Category> search(CategorySearchRequest request);
+}
